@@ -8,3 +8,5 @@ var USER_LOGOUT = baseUrl + '/admin/logout'; //登出接口
 var USER_INFO = baseUrl + '/admin/getuser'; // 用户简单信息获取
 var USER_INFO_GET = baseUrl + '/admin/userinfo_get'; // 用户详细信息获取
 var USER_INFO_EDIT = baseUrl + '/admin/userinfo_edit'; // 用户信息修改
+
+var ARTICLE_GET = baseUrl + '/admin/category_search';
