@@ -139,7 +139,7 @@
   <script src="./js/template-web.js"></script>
 
   <!-- 设置分类结构的模板 -->
-  <script type="text/html" id="category">
+  <!-- <script type="text/html" id="category">
     {{each data v}}
     <tr>
       <td>{{v.name}}</td>
@@ -150,6 +150,21 @@
       </td>
     </tr>
     {{/each}}
+  </script> -->
+
+
+  <script type="text/template" id="category">
+    {{each data v}}
+    <tr>
+      <td>{{v.name}}</td>
+      <td>{{v.slug}}</td>
+      <td class="text-center">
+        <a href="javascript:;" data-id="{{v.id}}" class="btn btn-info btn-xs edit">编辑</a>
+        <a href="javascript:;" data-id="{{v.id}}" class="btn btn-danger btn-xs del">删除</a>
+      </td>
+    </tr>
+    {{/each}}
+
   </script>
   <script>
     // 功能简介：
@@ -175,123 +190,237 @@
     //   在编辑按钮中设置data - id属性保存当前数据的id
     // 4 分类信息的删除功能
 
-    // 功能1：分类数据获取和展示
-    $.ajax({
-        url: 'http://localhost:8000/admin/category_search',
-        success: function(res) {
-          // console.log(res);
-
-          if (res.code === 200) {
-            var htmlStr = template('category', res);
-            $('#tbody').html(htmlStr);
-          }
+    // 功能1分类数据获取展示
+    article.getCate({
+      callback: function(res) {
+        // console.log(res);
+        if (res.code === 200) {
+          var htmlStr = template('category', res);
+          $('tbody').html(htmlStr);
         }
-      })
-      // 功能2：分类数据的新增功能(id叫modal_add)
+      }
+    })
+
+    // 功能2新增分类
     $('#modal_add').on('click', function() {
-        var name = $('#cate_name').val();
-        var slug = $('#cate_slug').val();
-        if (name.trim() == '' || slug.trim() == '') {
-          alert('请完整填写！~');
-          return;
-        }
-        $.ajax({
-          url: 'http://localhost:8000/admin/category_add',
-          type: 'post',
-          data: {
-            name: name,
-            slug: slug
-          },
-          success: function(res) {
-            console.log(res);
-
-            if (res.code === 200) {
-              location.reload();
-            } else {
-              alert('已存在，请重新输入！~')
-            }
+      var name = $('#cate_name').val();
+      var slug = $('#cate_slug').val();
+      if (name.trim() == '' || slug.trim() == '') {
+        alert('好好写！~');
+        return;
+      }
+      article.addCate({
+        data: {
+          name: name,
+          slug: slug
+        },
+        callback: function(res) {
+          // console.log(res);
+          if (res.code === 200) {
+            location.reload()
+          } else {
+            alert('已存在，请重新输入');
           }
-        })
+        }
       })
-      // 添加按钮设置点击事件
-      // $('#addBtn').on('click', function() {
-      //     $('modal_add').show();
-      //     $('#modal_edit').hide();
-      //   })
 
 
-    // 功能3：分类数据的编辑功能
-    $('tbody').on('click', '.edit', function() {
-      var id = $(this).attr('data-id');
-      // console.log(id);
-      $('#modal_edit').attr('data-id', id);
-      var $tds = $(this).parents('tr').children();
-      $('#cate_name').val($tds.eq(0).text());
-      $('#cate_slug').val($tds.eq(1).text());
-
-      $('#addModal').modal('show');
-      $('#modal_add').hide();
-      $('#modal_edit').show();
-    });
-
-
+    })
     $('#addBtn').on('click', function() {
         $('#modal_add').show();
         $('#modal_edit').hide();
       })
-      // 提交编辑按钮点击事件
+      // 功能3编辑分类
+      // 编进按钮事件委托 
+    $('tbody').on('click', '.edit', function() {
+        var id = $(this).attr('data-id');
+        console.log(id);
+        $('#modal_edit').attr('data-id', id);
+        var $tds = $(this).parents('tr').children();
+        $('#cate_name').val($tds.eq(0).html());
+        $('#cate_slug').val($tds.eq(1).html());
+        $('#addModal').modal('show');
+        $('#modal_add').hide();
+        $('#modal_edit').show();
+      })
+      // 提交编辑按钮点击
     $('#modal_edit').on('click', function() {
-      var id = $(this).attr('data-id');
       var name = $('#cate_name').val();
       var slug = $('#cate_slug').val();
-
-      if (name.trim() === '' || slug.trim() === '') {
-        alert('请完整填写表单');
+      var id = $(this).attr('data-id');
+      if (name.trim() == '' || slug.trim() == '') {
+        alert('好好写！~');
         return;
       }
-      $.ajax({
-        url: 'http://localhost:8000/admin/category_edit',
-        type: 'post',
+
+      article.editCate({
         data: {
           id: id,
           name: name,
           slug: slug
         },
-        success: function(res) {
-          console.log(res);
+        callback: function(res) {
           if (res.code === 200) {
             location.reload();
           } else {
-            alert('name和slug不能重复，请重新输入！~');
+            alert('请重新填写');
           }
         }
       })
     })
 
-    // 功能4：分类数据的删除功能
+
+    // 功能4删除分类
+    // 事件委托
     $('tbody').on('click', '.del', function() {
-      if (!confirm('是否确认删除？')) {
-        return;
-      }
-      var $tr = $(this).parents('tr');
       var id = $(this).attr('data-id');
-      $.ajax({
-        url: 'http://localhost:8000/admin/category_delete',
-        type: 'post',
-        data: {
-          id: id
-        },
-        success: function(res) {
-          console.log(res);
+      var $tr = $(this).parents('tr');
+      if (confirm('是否确认删除？')) {
 
-          if (res.code === 200) {
-            $tr.remove();
-            console.log('删除成功');
-
+        article.delCate({
+          data: {
+            id: id
+          },
+          callback: function(res) {
+            if (res.code === 200) {
+              $tr.remove();
+              console.log('删除成功');
+            }
           }
-        }
-      })
+        })
+      }
     })
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // // 功能1：分类数据获取和展示
+    // $.ajax({
+    //     url: 'http://localhost:8000/admin/category_search',
+    //     success: function(res) {
+    //       // console.log(res);
+
+    //       if (res.code === 200) {
+    //         var htmlStr = template('category', res);
+    //         $('#tbody').html(htmlStr);
+    //       }
+    //     }
+    //   })
+    //   // 功能2：分类数据的新增功能(id叫modal_add)
+    // $('#modal_add').on('click', function() {
+    //     var name = $('#cate_name').val();
+    //     var slug = $('#cate_slug').val();
+    //     if (name.trim() == '' || slug.trim() == '') {
+    //       alert('请完整填写！~');
+    //       return;
+    //     }
+    //     $.ajax({
+    //       url: 'http://localhost:8000/admin/category_add',
+    //       type: 'post',
+    //       data: {
+    //         name: name,
+    //         slug: slug
+    //       },
+    //       success: function(res) {
+    //         console.log(res);
+
+    //         if (res.code === 200) {
+    //           location.reload();
+    //         } else {
+    //           alert('已存在，请重新输入！~')
+    //         }
+    //       }
+    //     })
+    //   })
+    //   // 添加按钮设置点击事件
+    //   // $('#addBtn').on('click', function() {
+    //   //     $('modal_add').show();
+    //   //     $('#modal_edit').hide();
+    //   //   })
+
+
+    // // 功能3：分类数据的编辑功能
+    // $('tbody').on('click', '.edit', function() {
+    //   var id = $(this).attr('data-id');
+    //   // console.log(id);
+    //   $('#modal_edit').attr('data-id', id);
+    //   var $tds = $(this).parents('tr').children();
+    //   $('#cate_name').val($tds.eq(0).text());
+    //   $('#cate_slug').val($tds.eq(1).text());
+
+    //   $('#addModal').modal('show');
+    //   $('#modal_add').hide();
+    //   $('#modal_edit').show();
+    // });
+
+
+    // $('#addBtn').on('click', function() {
+    //     $('#modal_add').show();
+    //     $('#modal_edit').hide();
+    //   })
+    //   // 提交编辑按钮点击事件
+    // $('#modal_edit').on('click', function() {
+    //   var id = $(this).attr('data-id');
+    //   var name = $('#cate_name').val();
+    //   var slug = $('#cate_slug').val();
+
+    //   if (name.trim() === '' || slug.trim() === '') {
+    //     alert('请完整填写表单');
+    //     return;
+    //   }
+    //   $.ajax({
+    //     url: 'http://localhost:8000/admin/category_edit',
+    //     type: 'post',
+    //     data: {
+    //       id: id,
+    //       name: name,
+    //       slug: slug
+    //     },
+    //     success: function(res) {
+    //       console.log(res);
+    //       if (res.code === 200) {
+    //         location.reload();
+    //       } else {
+    //         alert('name和slug不能重复，请重新输入！~');
+    //       }
+    //     }
+    //   })
+    // })
+
+    // // 功能4：分类数据的删除功能
+    // $('tbody').on('click', '.del', function() {
+    //   if (!confirm('是否确认删除？')) {
+    //     return;
+    //   }
+    //   var $tr = $(this).parents('tr');
+    //   var id = $(this).attr('data-id');
+    //   $.ajax({
+    //     url: 'http://localhost:8000/admin/category_delete',
+    //     type: 'post',
+    //     data: {
+    //       id: id
+    //     },
+    //     success: function(res) {
+    //       console.log(res);
+
+    //       if (res.code === 200) {
+    //         $tr.remove();
+    //         console.log('删除成功');
+
+    //       }
+    //     }
+    //   })
+    // })
   </script>
 </body>
 

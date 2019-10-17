@@ -197,8 +197,10 @@
 
   <script src="./tool/config.js"></script>
   <script src="./tool/artile.js"></script>
+  <script src="./js/jquery.twbsPagination.js"></script>
   <script src="./js/template-web.js"></script>
-  <script type="text/html" id="article">
+
+  <!-- <script type="text/html" id="article">
     {{each data v}}
     <tr>
       <td>{{v.title}}</td>
@@ -218,10 +220,128 @@
     {{each data v}}
     <option value="{{v.id}}">{{v.name}}</option>
     {{/each}}
+  </script> -->
+
+  <!-- 表格结构 -->
+  <script type="text/html" id="article">
+    {{each data v}}
+    <tr>
+      <td>{{v.title}}</td>
+      <td>{{v.author}}</td>
+      <td>{{v.type}}</td>
+      <td class="text-center">{{v.date}}</td>
+      <td class="text-center">{{v.state}}</td>
+      <td class="text-center">
+        <a href="post-edit.html?id=1000" class="btn btn-default btn-xs">编辑</a>
+        <a href="javascript:deleteTr( 1000 );" class="btn btn-danger btn-xs">删除</a>
+      </td>
+    </tr>
+    {{/each}}
+  </script>
+
+
+  <!-- 下拉菜单 -->
+  <script type="text/template" id="category">
+    {{each data v}}
+    <option value="{{v.id}}">{{v.name}}</option>
+    {{/each}}
+
+
   </script>
 
 
   <script>
+    var myTotalPage;
+    var myPage = 1;
+
+
+    getArticle();
+
+
+    article.getCate({
+      callback: function(res) {
+        if (res.code === 200) {
+          console.log(res);
+          var htmlStr = template('category', res);
+          $('#selCategory').append(htmlStr);
+        }
+      }
+    })
+
+    $('#btnSearch').on('click', function() {
+      event.preventDefault();
+      $('.first').click();
+      getArticle();
+    })
+
+
+
+    function getArticle() {
+
+      // article.getCate({
+      //   data: {
+      //     type: $('#selCategory').val(),
+      //     state: $('#selStatus').val()
+      //   },
+      //   callback: function(res) {
+      //     console.log(res);
+      //     if (res.code === 200) {
+      //       var htmlStr = template('article', res);
+      //       $('tbody').html(htmlStr);
+      //     }
+      //   }
+      // })
+
+      $.ajax({
+        url: 'http://localhost:8000/admin/search',
+        data: {
+          type: $('#selCategory').val(),
+          state: $('#selStatus').val(),
+          page: myPage,
+          perpage: 10
+        },
+        success: function(res) {
+          console.log(res);
+          if (res.code === 200) {
+            console.log(res);
+
+            var htmlStr = template('article', res);
+            $('tbody').html(htmlStr);
+            // 3 分页功能
+            //   -
+            //   记得引入各种文件 -
+            //   进行分页功能设置的时机： -
+            //   页面初次加载时， 请求数据后获取到总页数， 进行分页结构创建 -
+            //   进行了筛选操作后， 请求的数据的总页数有变化， 重新生成分页结构 -
+            //   如果需要重新设置分页结构， 旧的分页结构应当删除（ 排他） -
+            //   删除旧的结构: 某个元素.twbsPagination('destroy');
+            var totalPages = res.totalPage;
+            if (totalPages === myTotalPage) {
+              return;
+            }
+            myTotalPage = totalPages;
+            $('.pagination').twbsPagination('destroy');
+            $('.pagination').twbsPagination({
+              totalPages: totalPages,
+              visiblePages: 5,
+              first: '首页',
+              last: '尾页',
+              prev: '上一页',
+              next: '下一页',
+              onPageClick: function(event, page) {
+                console.log(page);
+                myPage = page;
+                getArticle();
+              }
+            })
+          }
+        }
+      });
+
+    }
+  </script>
+
+  <!-- <script>
     $.ajax({
       url: 'http://localhost:8000/admin/search',
       // 页面第一次请求时，是进行基本数据获取，无需传入其他参数
@@ -270,7 +390,7 @@
         }
       })
     })
-  </script>
+  </script> -->
 
 </body>
 

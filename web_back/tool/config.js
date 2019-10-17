@@ -9,4 +9,7 @@ var USER_INFO = baseUrl + '/admin/getuser'; // 用户简单信息获取
 var USER_INFO_GET = baseUrl + '/admin/userinfo_get'; // 用户详细信息获取
 var USER_INFO_EDIT = baseUrl + '/admin/userinfo_edit'; // 用户信息修改
 
-var ARTICLE_GET = baseUrl + '/admin/category_search';
+var ARTICLE_GET = baseUrl + '/admin/category_search'; //文章类别搜索
+var ARTICLE_ADD = baseUrl + '/admin/category_add'; //新增文章类别
+var ARTICLE_EDIT = baseUrl + '/admin/category_edit'; //编辑文章类别
+var ARTICLE_DEL = baseUrl + '/admin/category_delete'; //删除文章类别
